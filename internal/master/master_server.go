@@ -61,6 +61,69 @@ func (svr ServerMaster) addMemberHandler(r *http.Request) string {
 	return "Done"
 }
 
+func (svr ServerMaster) getHandler(u *url.URL) string {
+	queryMap, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return "Wrong Request Format"
+	}
+	keys, ok := queryMap["key"];
+	if !ok {
+		return "Wrong Request Format"
+	}
+
+	val, err := svr.lib.Get(keys[0])
+
+	if err != nil {
+		return err.Error()
+	}
+
+	return "{" + keys[0] + ": " + val + "}"
+}
+
+func (svr ServerMaster) putHandler(u *url.URL) string {
+	queryMap, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return "Wrong Request Format"
+	}
+
+	keys, ok := queryMap["key"]
+	if !ok {
+		return "Wrong Request Format"
+	}
+
+	values, ok := queryMap["value"]
+	if !ok {
+		return "Wrong Request Format"
+	}
+	err2 := svr.lib.Put(keys[0], values[0])
+
+	if err2 != nil {
+		return err.Error()
+	}
+
+	return "Done"
+}
+
+func (svr ServerMaster) routerHandler(u *url.URL) string {
+	queryMap, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return "Wrong Request Format"
+	}
+
+	keys, ok := queryMap["key"]
+	if !ok {
+		return "Wrong Request Format"
+	}
+
+	hostport, errRouter := svr.lib.Router(keys[0])
+
+	if errRouter != nil {
+		return errRouter.Error()
+	}
+
+	return hostport
+}
+
 func (svr ServerMaster) Serve() {
 	http.HandleFunc("/getMembers", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, svr.getMembersHandler())
@@ -70,5 +133,21 @@ func (svr ServerMaster) Serve() {
 		io.WriteString(w, svr.addMemberHandler(r))
 	})
 
+	http.HandleFunc("/kv/get", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, svr.getHandler(r.URL))
+	})
+
+	http.HandleFunc("/kv/put", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, svr.putHandler(r.URL))
+	})
+
+	http.HandleFunc("/kv/router", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, svr.routerHandler(r.URL))
+	})
+
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(svr.port), nil))
 }
+
+
+
+

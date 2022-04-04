@@ -2,6 +2,9 @@ package master
 
 import (
 	"errors"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"sort"
 	"strconv"
 	"sync"
@@ -24,11 +27,40 @@ func NewLibMasterCH() *LibMasterCH {
 }
 
 func (l *LibMasterCH) Get(key string) (string, error) {
-	panic("implement me")
+	hostport, errRouter := l.Router(key)
+
+	if errRouter != nil {
+		return "", errRouter
+	}
+
+	resp, err := http.Get("http://" + hostport + "/get?key=" + key)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+	val, _ := ioutil.ReadAll(resp.Body)
+
+	log.Printf("Get {%v, %v} from %v\n", key, string(val), hostport)
+	return string(val), nil
 }
 
 func (l *LibMasterCH) Put(key string, value string) error {
-	panic("implement me")
+	hostport, errRouter := l.Router(key)
+
+	if errRouter != nil {
+		return errRouter
+	}
+
+	_, err := http.Get("http://" + hostport + "/put?key=" + key + "&value=" +value)
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Put {%v, %v} to %v\n", key, value, hostport)
+	return nil
 }
 
 func (l *LibMasterCH) Delete(key string) error {
