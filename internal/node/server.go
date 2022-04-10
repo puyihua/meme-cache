@@ -1,4 +1,4 @@
-package server
+package node
 
 import (
 	"io"
@@ -6,17 +6,15 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-
-	store "github.com/puyihua/meme-cache/internal/store"
 )
 
 type Server struct {
 	port  int
-	store *store.MapStore
+	store *MapStore
 }
 
 func NewServer(port int) *Server {
-	ms := store.NewMapStore()
+	ms := NewMapStore()
 	return &Server{port: port, store: ms}
 }
 
@@ -55,6 +53,10 @@ func (svr Server) putHandler(theUrl *url.URL) string {
 	return "Done"
 }
 
+func (svr Server) getLenHandler() string {
+	return "Total num of keys: " + strconv.Itoa(svr.store.GetLength())
+}
+
 func (svr Server) Serve() {
 	http.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, svr.getHandler(r.URL))
@@ -62,6 +64,10 @@ func (svr Server) Serve() {
 
 	http.HandleFunc("/put", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, svr.putHandler(r.URL))
+	})
+
+	http.HandleFunc("/getlen", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, svr.getLenHandler())
 	})
 
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(svr.port), nil))

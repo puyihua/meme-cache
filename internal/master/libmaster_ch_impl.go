@@ -12,16 +12,16 @@ import (
 
 // LibMasterCH implements the behavior of a master with consistent hash
 type LibMasterCH struct {
-	hashChain []uint64
-	hash2Server map[uint64]string
-	serverHealth map[string]int	// count the number of consecutive failed request
-	rwLock sync.RWMutex
+	hashChain    []uint64
+	hash2Server  map[uint64]string
+	serverHealth map[string]int // count the number of consecutive failed request
+	rwLock       sync.RWMutex
 }
 
 func NewLibMasterCH() *LibMasterCH {
 	return &LibMasterCH{
-		hashChain: []uint64{},
-		hash2Server: make(map[uint64]string),
+		hashChain:    []uint64{},
+		hash2Server:  make(map[uint64]string),
 		serverHealth: make(map[string]int),
 	}
 }
@@ -34,12 +34,11 @@ func (l *LibMasterCH) Get(key string) (string, error) {
 	}
 
 	resp, err := http.Get("http://" + hostport + "/get?key=" + key)
-
 	if err != nil {
 		return "", err
 	}
-
 	defer resp.Body.Close()
+
 	val, _ := ioutil.ReadAll(resp.Body)
 
 	log.Printf("Get {%v, %v} from %v\n", key, string(val), hostport)
@@ -53,7 +52,7 @@ func (l *LibMasterCH) Put(key string, value string) error {
 		return errRouter
 	}
 
-	_, err := http.Get("http://" + hostport + "/put?key=" + key + "&value=" +value)
+	_, err := http.Head("http://" + hostport + "/put?key=" + key + "&value=" + value)
 
 	if err != nil {
 		return err
@@ -96,9 +95,9 @@ func (l *LibMasterCH) RemoveMember(hostport string) error {
 
 func (l *LibMasterCH) GetMembers() []string {
 	l.rwLock.RLock()
-	l.rwLock.RUnlock()
+	defer l.rwLock.RUnlock()
 	var members []string
-	for hostport, _ := range l.serverHealth {
+	for hostport := range l.serverHealth {
 		members = append(members, hostport)
 	}
 	return members
@@ -106,7 +105,7 @@ func (l *LibMasterCH) GetMembers() []string {
 
 func (l *LibMasterCH) Router(key string) (string, error) {
 	l.rwLock.RLock()
-	l.rwLock.RUnlock()
+	defer l.rwLock.RUnlock()
 	if len(l.hashChain) == 0 {
 		return "", errors.New("there is no available node")
 	}
@@ -115,7 +114,7 @@ func (l *LibMasterCH) Router(key string) (string, error) {
 	id := hashKey(key)
 	left, right := 0, len(l.hashChain)
 	for left < right {
-		mid := left + (right - left) / 2
+		mid := left + (right-left)/2
 		if l.hashChain[mid] >= id {
 			right = mid
 		} else {
@@ -132,9 +131,6 @@ func (l *LibMasterCH) Router(key string) (string, error) {
 }
 
 // generateHashKey generate the ith key of node
-func generateHashKey(hostport string, i int) uint64{
+func generateHashKey(hostport string, i int) uint64 {
 	return hashKey(hostport + "|" + strconv.Itoa(i))
 }
-
-
-
