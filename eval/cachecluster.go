@@ -2,7 +2,7 @@ package eval
 
 import (
 	"fmt"
-	"io"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -84,7 +84,7 @@ func (ms *MasterServer) Get(key string) (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
-	bytes, err := io.ReadAll(resp.Body)
+	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
@@ -100,6 +100,7 @@ func (ms *MasterServer) Put(key string, value string) error {
 		return err
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode != 200 {
 		log.Printf("Client->Master: Put failed with status code %d", resp.StatusCode)
 	}
@@ -119,7 +120,7 @@ func (ns *NodeServer) GetLen() (int, error) {
 		return -1, err
 	}
 	defer resp.Body.Close()
-	byteArr, err := io.ReadAll(resp.Body)
+	byteArr, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return -1, err
 	}

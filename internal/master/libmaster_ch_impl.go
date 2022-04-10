@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"sync"
@@ -39,6 +40,11 @@ func (l *LibMasterCH) Get(key string) (string, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		log.Printf("Master->Node %v: Get {%v} failed with status code %d", hostport, key, resp.StatusCode)
+		return "", errors.New("get failed")
+	}
+
 	val, _ := ioutil.ReadAll(resp.Body)
 
 	log.Printf("Get {%v, %v} from %v\n", key, string(val), hostport)
@@ -51,7 +57,7 @@ func (l *LibMasterCH) Put(key string, value string) error {
 	if errRouter != nil {
 		return errRouter
 	}
-
+	key, value = url.QueryEscape(key), url.QueryEscape(value)
 	resp, err := http.Get("http://" + hostport + "/put?key=" + key + "&value=" + value)
 	if err != nil {
 		return err
@@ -59,7 +65,8 @@ func (l *LibMasterCH) Put(key string, value string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		log.Printf("Master->Node: Put failed with status code %d", resp.StatusCode)
+		log.Printf("Master->Node %v: Put {%v, %v} failed with status code %d", hostport, key, value, resp.StatusCode)
+		return errors.New("put failed")
 	}
 
 	log.Printf("Master: Put {%v, %v} to %v\n", key, value, hostport)

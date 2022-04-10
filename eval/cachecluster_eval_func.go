@@ -3,7 +3,7 @@ package eval
 import (
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
 	"strconv"
 )
@@ -28,7 +28,7 @@ func (cc *CacheCluster) PutKeywords(n int) error {
 	}
 	defer jsonFile.Close()
 
-	bytes, _ := io.ReadAll(jsonFile)
+	bytes, _ := ioutil.ReadAll(jsonFile)
 
 	var keywordsMap map[string][]string
 	json.Unmarshal([]byte(bytes), &keywordsMap)

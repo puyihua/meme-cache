@@ -18,7 +18,9 @@ func NewServer(port int) *Server {
 	return &Server{port: port, store: ms}
 }
 
-func (svr Server) getHandler(theUrl *url.URL) string {
+
+
+func (svr *Server) getHandler(theUrl *url.URL) string {
 	queryMap, err := url.ParseQuery(theUrl.RawQuery)
 	if err != nil {
 		return "Wrong Request Format"
@@ -34,7 +36,7 @@ func (svr Server) getHandler(theUrl *url.URL) string {
 	}
 }
 
-func (svr Server) putHandler(theUrl *url.URL) string {
+func (svr *Server) putHandler(theUrl *url.URL) string {
 	queryMap, err := url.ParseQuery(theUrl.RawQuery)
 	if err != nil {
 		return "Wrong Request Format"
@@ -49,15 +51,16 @@ func (svr Server) putHandler(theUrl *url.URL) string {
 	if !ok {
 		return "Wrong Request Format"
 	}
+	// log.Printf("Cache server: Put {%v, %v}\n", keys[0], values[0])
 	svr.store.Put(keys[0], values[0])
 	return "Done"
 }
 
-func (svr Server) getLenHandler() string {
+func (svr *Server) getLenHandler() string {
 	return strconv.Itoa(svr.store.GetLength())
 }
 
-func (svr Server) Serve() {
+func (svr *Server) Serve() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, svr.getHandler(r.URL))
