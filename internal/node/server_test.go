@@ -44,7 +44,7 @@ func TestNodeServer(t *testing.T) {
 	if err != nil {
 		t.Errorf(err.Error())
 	}
-	if string(b) != "Total num of keys: 3" {
+	if string(b) != "3" {
 		t.Errorf("get length response incorrect: " + string(b))
 	}
 

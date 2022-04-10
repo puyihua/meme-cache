@@ -1,7 +1,9 @@
 package eval
 
 import (
+	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -12,12 +14,12 @@ import (
 	"github.com/puyihua/meme-cache/internal/node"
 )
 
-type CacheCluster struct {
-	master *MasterServer
-	nodes  []*NodeServer
-}
-
 const localhost = "http://127.0.0.1:"
+
+type CacheCluster struct {
+	Master *MasterServer
+	Nodes  []*NodeServer
+}
 
 func NewCacheCluster(masterPort int, nodePorts []int, numVidPerNode int) *CacheCluster {
 	// master
@@ -32,6 +34,7 @@ func NewCacheCluster(masterPort int, nodePorts []int, numVidPerNode int) *CacheC
 	// nodes
 	for _, port := range nodePorts {
 		go func() {
+			fmt.Printf("port: %d\n", port)
 			nodeSrv := node.NewServer(port)
 			nodeSrv.Serve()
 		}()
@@ -76,7 +79,7 @@ func (ms *MasterServer) AddMember(port int, vids []uint64) error {
 }
 
 func (ms *MasterServer) Get(key string) (string, error) {
-	resp, err := http.Get(ms.Url + "/get?key=" + key)
+	resp, err := http.Get(ms.Url + "/kv/get?key=" + key)
 	if err != nil {
 		return "", err
 	}
@@ -92,10 +95,15 @@ func (ms *MasterServer) Get(key string) (string, error) {
 func (ms *MasterServer) Put(key string, value string) error {
 	keyUrl := url.QueryEscape(key)
 	valueUrl := url.QueryEscape(value)
-	_, err := http.Head(ms.Url + "/put?key=" + keyUrl + "&value=" + valueUrl)
+	resp, err := http.Get(ms.Url + "/kv/put?key=" + keyUrl + "&value=" + valueUrl)
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		log.Printf("Client->Master: Put failed with status code %d", resp.StatusCode)
+	}
+
 	return nil
 }
 
@@ -115,8 +123,8 @@ func (ns *NodeServer) GetLen() (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	respStr := string(byteArr)
-	length, err := strconv.Atoi(strings.Split(respStr, ":")[1])
+
+	length, err := strconv.Atoi(string(byteArr))
 	if err != nil {
 		return -1, err
 	}

@@ -52,13 +52,17 @@ func (l *LibMasterCH) Put(key string, value string) error {
 		return errRouter
 	}
 
-	_, err := http.Head("http://" + hostport + "/put?key=" + key + "&value=" + value)
-
+	resp, err := http.Get("http://" + hostport + "/put?key=" + key + "&value=" + value)
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
-	log.Printf("Put {%v, %v} to %v\n", key, value, hostport)
+	if resp.StatusCode != 200 {
+		log.Printf("Master->Node: Put failed with status code %d", resp.StatusCode)
+	}
+
+	log.Printf("Master: Put {%v, %v} to %v\n", key, value, hostport)
 	return nil
 }
 

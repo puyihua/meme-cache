@@ -54,21 +54,22 @@ func (svr Server) putHandler(theUrl *url.URL) string {
 }
 
 func (svr Server) getLenHandler() string {
-	return "Total num of keys: " + strconv.Itoa(svr.store.GetLength())
+	return strconv.Itoa(svr.store.GetLength())
 }
 
 func (svr Server) Serve() {
-	http.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, svr.getHandler(r.URL))
 	})
 
-	http.HandleFunc("/put", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/put", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, svr.putHandler(r.URL))
 	})
 
-	http.HandleFunc("/getlen", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/getlen", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, svr.getLenHandler())
 	})
 
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(svr.port), nil))
+	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(svr.port), mux))
 }
