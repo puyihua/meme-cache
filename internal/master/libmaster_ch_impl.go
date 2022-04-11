@@ -69,7 +69,7 @@ func (l *LibMasterCH) Put(key string, value string) error {
 		return errors.New("put failed")
 	}
 
-	log.Printf("Master: Put {%v, %v} to %v\n", key, value, hostport)
+	// log.Printf("Master: Put {%v, %v} to %v\n", key, value, hostport)
 	return nil
 }
 

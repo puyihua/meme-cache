@@ -1,7 +1,6 @@
 package eval
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -34,7 +33,6 @@ func NewCacheCluster(masterPort int, nodePorts []int, numVidPerNode int) *CacheC
 	// nodes
 	for _, port := range nodePorts {
 		go func() {
-			fmt.Printf("port: %d\n", port)
 			nodeSrv := node.NewServer(port)
 			nodeSrv.Serve()
 		}()
