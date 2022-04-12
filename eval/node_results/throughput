@@ -1,0 +1,18 @@
+Fine Grained
+    node_test.go:66: [Read Throughput]  concurrency: 1, request: 200, elapsed: 7384ms, throughtput: 0.027086
+    node_test.go:66: [Read Throughput]  concurrency: 5, request: 1000, elapsed: 7615ms, throughtput: 0.131320
+    node_test.go:66: [Read Throughput]  concurrency: 10, request: 2000, elapsed: 7512ms, throughtput: 0.266241
+    node_test.go:66: [Read Throughput]  concurrency: 20, request: 4000, elapsed: 7376ms, throughtput: 0.542299
+
+RWLock
+    node_test.go:64: [Read Throughput]  concurrency: 1, request: 200, elapsed: 7160ms, throughtput: 0.027933
+    node_test.go:64: [Read Throughput]  concurrency: 5, request: 1000, elapsed: 7535ms, throughtput: 0.132714
+    node_test.go:64: [Read Throughput]  concurrency: 10, request: 2000, elapsed: 7636ms, throughtput: 0.261917
+    node_test.go:64: [Read Throughput]  concurrency: 20, request: 4000, elapsed: 7505ms, throughtput: 0.532978
+
+Baseline
+    node_test.go:64: [Read Throughput]  concurrency: 1, request: 200, elapsed: 7324ms, throughtput: 0.027307
+    node_test.go:64: [Read Throughput]  concurrency: 5, request: 1000, elapsed: 7468ms, throughtput: 0.133905
+    node_test.go:64: [Read Throughput]  concurrency: 10, request: 2000, elapsed: 7498ms, throughtput: 0.266738
+    node_test.go:64: [Read Throughput]  concurrency: 20, request: 4000, elapsed: 7511ms, throughtput: 0.532552
+
