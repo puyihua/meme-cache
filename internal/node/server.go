@@ -1,6 +1,7 @@
 package node
 
 import (
+	"github.com/puyihua/meme-cache/internal/node/store"
 	"io"
 	"log"
 	"net/http"
@@ -10,14 +11,29 @@ import (
 
 type Server struct {
 	port  int
-	store *MapStore
+	store store.Store
 }
 
+// default use of baseline store
 func NewServer(port int) *Server {
-	ms := NewMapStore()
+	ms := store.NewMapStore()
 	return &Server{port: port, store: ms}
 }
 
+// switch to different store implementation
+func NewServerWithType(port int, storeImplType int) * Server {
+	var ms store.Store
+	switch storeImplType {
+	case store.TypeBaseline:
+		ms = store.NewMapStore()
+	case store.TypeRWLock:
+		ms = store.NewRWMapStore()
+	case store.TypeFineGrained:
+		ms = store.NewFineGrainedMapStore()
+	}
+
+	return &Server{port: port, store: ms}
+}
 
 
 func (svr *Server) getHandler(theUrl *url.URL) string {

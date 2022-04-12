@@ -1,7 +1,8 @@
 package node
 
 import (
-	"io"
+	"github.com/puyihua/meme-cache/internal/node/store"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"testing"
@@ -14,7 +15,7 @@ func TestNodeServer(t *testing.T) {
 	url := "http://localhost:" + strconv.Itoa(port)
 
 	go func() {
-		svr := NewServer(port)
+		svr := NewServerWithType(port, store.TypeFineGrained)
 		svr.Serve()
 	}()
 
@@ -40,7 +41,7 @@ func TestNodeServer(t *testing.T) {
 	defer resp.Body.Close()
 
 	// test get length
-	b, err := io.ReadAll(resp.Body)
+	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -55,7 +56,7 @@ func TestNodeServer(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	b, err = io.ReadAll(resp.Body)
+	b, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		t.Errorf(err.Error())
 	}

@@ -1,11 +1,13 @@
-package node
+package store
 
 import (
 	"fmt"
+	"sync"
 )
 
 type MapStore struct {
 	store map[string]string
+	mutex sync.Mutex
 }
 
 func NewMapStore() *MapStore {
@@ -15,6 +17,8 @@ func NewMapStore() *MapStore {
 }
 
 func (ms *MapStore) Get(key string) (string, error) {
+	ms.mutex.Lock()
+	defer ms.mutex.Unlock()
 	if val, ok := ms.store[key]; ok {
 		return val, nil
 	} else {
@@ -23,9 +27,13 @@ func (ms *MapStore) Get(key string) (string, error) {
 }
 
 func (ms *MapStore) Put(key string, value string) {
+	ms.mutex.Lock()
+	defer ms.mutex.Unlock()
 	ms.store[key] = value
 }
 
 func (ms *MapStore) GetLength() int {
+	ms.mutex.Lock()
+	defer ms.mutex.Unlock()
 	return len(ms.store)
 }

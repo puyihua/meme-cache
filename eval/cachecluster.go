@@ -2,6 +2,7 @@ package eval
 
 import (
 	"fmt"
+	"github.com/puyihua/meme-cache/internal/node/store"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -35,7 +36,7 @@ func NewCacheCluster(masterPort int, nodePorts []int, numVidPerNode int) *CacheC
 	for _, port := range nodePorts {
 		go func() {
 			fmt.Printf("port: %d\n", port)
-			nodeSrv := node.NewServer(port)
+			nodeSrv := node.NewServerWithType(port, store.TypeFineGrained)
 			nodeSrv.Serve()
 		}()
 		vids := randVids(numVidPerNode)
