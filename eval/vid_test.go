@@ -6,15 +6,28 @@ import (
 	"time"
 )
 
-func TestVids(t *testing.T) {
-	masterPort := 8080
-	nodePorts := [2]int{8081, 8082}
+const masterPort = 8080
 
-	cc := NewCacheCluster(masterPort, nodePorts[:], 1)
+func TestVids(t *testing.T) {
+	numNode := 8
+	numKeys := 1000
+	err := startClusterAndPutKeys(numNode, 8, numKeys)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func startClusterAndPutKeys(numNode, numVidsPerNode, numKeys int) error {
+	nodePorts := make([]int, numNode)
+	for i := 0; i < numNode; i++ {
+		nodePorts[i] = masterPort + i + 1
+	}
+
+	cc := NewCacheCluster(masterPort, nodePorts[:], numVidsPerNode)
 
 	time.Sleep(1 * time.Second)
 
-	err := cc.PutKeywords(1000)
+	err := cc.PutKeywords(numKeys)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -24,4 +37,5 @@ func TestVids(t *testing.T) {
 		fmt.Println(err.Error())
 	}
 	fmt.Println(lenMap)
+	return nil
 }

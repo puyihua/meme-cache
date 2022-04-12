@@ -10,8 +10,8 @@ import (
 )
 
 type ServerMaster struct {
-	port  int
-	lib *LibMasterCH
+	port int
+	lib  *LibMasterCH
 }
 
 func NewServerMaster(port int) *ServerMaster {
@@ -40,11 +40,12 @@ func (svr ServerMaster) addMemberHandler(r *http.Request) string {
 
 	hostport := host[0] + ":" + port[0]
 
-	vidStrs, ok := queryMap["vid"]
+	vidStrSingleStr, ok := queryMap["vid"]
 	if !ok {
 		return "Wrong Request Format"
 	}
-	
+	vidStrs := strings.Split(vidStrSingleStr[0], ",")
+
 	var vids []uint64
 
 	for i := range vidStrs {
@@ -66,7 +67,7 @@ func (svr ServerMaster) getHandler(u *url.URL) string {
 	if err != nil {
 		return "Wrong Request Format"
 	}
-	keys, ok := queryMap["key"];
+	keys, ok := queryMap["key"]
 	if !ok {
 		return "Wrong Request Format"
 	}
@@ -147,7 +148,3 @@ func (svr ServerMaster) Serve() {
 
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(svr.port), nil))
 }
-
-
-
-
