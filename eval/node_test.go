@@ -6,6 +6,7 @@ import (
 	"github.com/puyihua/meme-cache/internal/node/store"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -17,16 +18,28 @@ import (
 const defaultStoreType int = store.TypeBaseline
 const urlStr string = "http://localhost:8082"
 
-func TestBaselineReadThroughPut(t *testing.T) {
+func TestBaselineReadThroughput(t *testing.T) {
 	evalNodeReadThroughPut(t, store.TypeBaseline)
 }
 
-func TestRWLockReadThroughPut(t *testing.T) {
+func TestRWLockReadThroughput(t *testing.T) {
 	evalNodeReadThroughPut(t, store.TypeRWLock)
 }
 
-func TestFineGrainedReadThroughPut(t *testing.T) {
+func TestFineGrainedReadThroughput(t *testing.T) {
 	evalNodeReadThroughPut(t, store.TypeFineGrained)
+}
+
+func TestBaselineReadAndThroughput(t *testing.T) {
+	evalNodeReadAndWriteThroughPut(t, store.TypeBaseline)
+}
+
+func TestRWLockReadAndThroughput(t *testing.T) {
+	evalNodeReadAndWriteThroughPut(t, store.TypeRWLock)
+}
+
+func TestFineGrainedReadAndThroughput(t *testing.T) {
+	evalNodeReadAndWriteThroughPut(t, store.TypeFineGrained)
 }
 
 func evalNodeReadThroughPut(t *testing.T, storeType int) {
@@ -46,17 +59,42 @@ func evalNodeReadThroughPut(t *testing.T, storeType int) {
 	evalNodeThroughput(t, numKeys, 5, keys, ops)
 	evalNodeThroughput(t, numKeys, 10, keys, ops)
 	evalNodeThroughput(t, numKeys, 20, keys, ops)
-	//evalNodeThroughput(t, numKeys, 15, keys, ops)
+}
+
+func evalNodeReadAndWriteThroughPut(t *testing.T, storeType int) {
+	numKeys := 200
+	keys, err1 := readKeysFromJson(numKeys)
+	if err1 != nil {
+		t.Error(err1)
+	}
+
+	err2 := startNodeAndPutKeys(keys, storeType)
+	if err2 != nil {
+		t.Error(err2)
+	}
+
+	ops := []string{"PUT", "GET"}
+	evalNodeThroughput(t, numKeys, 1, keys, ops)
+	evalNodeThroughput(t, numKeys, 5, keys, ops)
+	evalNodeThroughput(t, numKeys, 10, keys, ops)
+	evalNodeThroughput(t, numKeys, 20, keys, ops)
 }
 
 func evalNodeThroughput(t *testing.T, numKeys int, numClients int, keys []string, ops []string) {
 
 	closeChan := make(chan int)
 
-	start := time.Now()
+	// generate random key group for different clients
+	shuffledKeysGroup := make([][]string, numClients)
+	shuffledKeysGroup[0] = keys
+	for i := 1; i < numClients; i++ {
+		shuffledKeysGroup[i] = generateShuffle(shuffledKeysGroup[i - 1])
+	}
 
+	// start benchmark
+	start := time.Now()
 	for i := 0; i < numClients; i++ {
-		go loadGenClient(urlStr, ops, keys, closeChan)
+		go loadGenClient(urlStr, ops, shuffledKeysGroup[i], closeChan)
 	}
 
 	countSum := 0
@@ -72,8 +110,21 @@ func evalNodeThroughput(t *testing.T, numKeys int, numClients int, keys []string
 
 	elapsed :=  int(time.Since(start) / time.Millisecond)
 
-	t.Logf("[Read Throughput]  concurrency: %d, request: %d, elapsed: %dms, throughtput: %f \n",
+	t.Logf("[Throughput]  concurrency: %d, request: %d, elapsed: %dms, throughtput: %f \n",
 		numClients, countSum, elapsed, float32(countSum) / float32(elapsed))
+}
+
+
+
+func generateShuffle(keys []string) []string {
+	newKeys := make([]string, len(keys))
+	copy(newKeys, keys)
+	// Fisher–Yates shuffle, reference: https://yourbasic.org/golang/shuffle-slice-array/
+	for i := len(newKeys) - 1; i > 0; i-- {
+		j := rand.Intn(i + 1)
+		newKeys[i], newKeys[j] = newKeys[j], newKeys[i]
+	}
+	return newKeys
 }
 
 func getNumOfKeys(urlStr string) (int, error) {
