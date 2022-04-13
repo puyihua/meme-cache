@@ -35,4 +35,3 @@ func loadGenClient(urlStr string, ops []string, keys []string, closeChan chan in
 	}
 	closeChan <- successfulReqCount
 }
-

@@ -13,6 +13,8 @@ const (
 	TypeRWLock
 	TypeFineGrained
 	TypeLockLess
+	TypeSyncWAL
+	TypeAsyncWAL
 )
 
 const DefaultSegmentNumber int = 8
