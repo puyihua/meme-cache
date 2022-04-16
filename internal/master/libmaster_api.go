@@ -14,6 +14,7 @@ type LibMaster interface {
 	AddMember(hostport string, vids []uint64) error
 	RemoveMember(hostport string) error
 	GetMembers() []string
+	Migrate(low uint64, high uint64, target string, source string) error
 }
 
 // hashKey has a given string to an unsigned 64-bit integer

@@ -38,3 +38,30 @@ func (rms *RWMapStore) GetLength() int {
 	return len(rms.store)
 }
 
+func (rms *RWMapStore) GetRange(low uint64, high uint64) map[string]string {
+	rms.mutex.RLock()
+	defer rms.mutex.RUnlock()
+	m := make(map[string]string)
+	for k, v := range rms.store {
+		hashValue := hashKey(k)
+		if low > high {
+			if hashValue < high || hashValue >= low {
+				m[k] = v
+			}
+		} else {
+			if hashValue >= low && hashValue < high {
+				m[k] = v
+			}
+		}
+	}
+	return m
+}
+
+func (rms *RWMapStore) MigrateRecv(m map[string]string) {
+	rms.mutex.Lock()
+	defer rms.mutex.Unlock()
+	for k, v := range m {
+		rms.store[k] = v
+	}
+}
+

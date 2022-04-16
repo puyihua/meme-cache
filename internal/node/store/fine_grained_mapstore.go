@@ -62,3 +62,13 @@ func (ms *FineGrainedMapStore) GetLength() int {
 	}
 	return length
 }
+
+func (ms *FineGrainedMapStore) GetRange(low uint64, high uint64) map[string]string {
+	return nil
+}
+
+func (ms *FineGrainedMapStore) MigrateRecv(m map[string]string) {
+	for k, v := range m {
+		ms.Put(k, v)
+	}
+}

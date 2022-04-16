@@ -5,6 +5,8 @@ import "hash/fnv"
 type Store interface {
 	Get(key string) (string, error)
 	Put(key string, value string)
+	GetRange(low uint64, high uint64) map[string]string
+	MigrateRecv(m map[string]string)
 	GetLength() int
 }
 
@@ -17,9 +19,14 @@ const (
 
 const DefaultSegmentNumber int = 8
 
-// hashKey has a given string to an unsigned 64-bit integer
+
 func hash2Segment(key string, segNum uint64) int {
+	return int(hashKey(key) % segNum)
+}
+
+// hashKey has a given string to an unsigned 64-bit integer
+func hashKey(key string) uint64 {
 	h := fnv.New64a()
 	_, _ = h.Write([]byte(key))
-	return int(h.Sum64() % segNum)
+	return h.Sum64()
 }

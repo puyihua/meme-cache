@@ -95,7 +95,14 @@ func (l *LibMasterCH) AddMember(hostport string, vids []uint64) error {
 
 	sort.Slice(l.hashChain, func(i, j int) bool { return l.hashChain[i] < l.hashChain[j] })
 
-	// TODO: data migration
+	// data migration
+	for _, vid := range vids {
+		pos := binarySearch(l.hashChain, vid)
+		high := l.hashChain[(pos + 1) % len(l.hashChain)]
+		low := l.hashChain[(pos - 1 + len(l.hashChain)) % len(l.hashChain)]
+		source := l.hash2Server[high]
+		l.Migrate(low, high, source, hostport)
+	}
 
 	return nil
 }
@@ -123,22 +130,41 @@ func (l *LibMasterCH) Router(key string) (string, error) {
 
 	// use the binary search to the the proper vid
 	id := hashKey(key)
-	left, right := 0, len(l.hashChain)
+	pos := binarySearch(l.hashChain, id)
+
+	i := pos
+	if pos >= len(l.hashChain) {
+		i = 0
+	}
+
+	return l.hash2Server[l.hashChain[i]], nil
+}
+
+func binarySearch(chain []uint64, target uint64) int{
+	left, right := 0, len(chain)
 	for left < right {
 		mid := left + (right-left)/2
-		if l.hashChain[mid] >= id {
+		if chain[mid] >= target {
 			right = mid
 		} else {
 			left = mid + 1
 		}
 	}
 
-	i := left
-	if left >= len(l.hashChain) {
-		i = 0
-	}
+	return left
+}
 
-	return l.hash2Server[l.hashChain[i]], nil
+func (l *LibMasterCH) Migrate(low uint64, high uint64, target string, source string) error {
+	resp, err := http.Get("http://" + source + "/migrate?target=" + target + "low=" +
+		strconv.FormatUint(low, 10) + "&high=" + strconv.FormatUint(high, 10))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return errors.New("migrate failed")
+	}
+	return nil
 }
 
 // generateHashKey generate the ith key of node
