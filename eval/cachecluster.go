@@ -2,7 +2,6 @@ package eval
 
 import (
 	"fmt"
-	"github.com/puyihua/meme-cache/internal/node/store"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -22,7 +21,7 @@ type CacheCluster struct {
 	Nodes  []*NodeServer
 }
 
-func NewCacheCluster(masterPort int, nodePorts []int, numVidPerNode int) *CacheCluster {
+func NewCacheCluster(masterPort int, nodePorts []int, numVidPerNode int, storeType int) *CacheCluster {
 	// master
 	masterUrl := localhost + strconv.Itoa(masterPort)
 	ms := &MasterServer{masterUrl}
@@ -36,7 +35,7 @@ func NewCacheCluster(masterPort int, nodePorts []int, numVidPerNode int) *CacheC
 	for _, port := range nodePorts {
 		go func() {
 			fmt.Printf("port: %d\n", port)
-			nodeSrv := node.NewServerWithType(port, store.TypeFineGrained)
+			nodeSrv := node.NewServerWithType(port, storeType)
 			nodeSrv.Serve()
 		}()
 		vids := randVids(numVidPerNode)
@@ -50,8 +49,9 @@ func NewCacheCluster(masterPort int, nodePorts []int, numVidPerNode int) *CacheC
 	}
 
 	return &CacheCluster{ms, nodes}
-
 }
+
+
 
 func randVids(n int) []uint64 {
 	vids := make([]uint64, n)

@@ -64,7 +64,35 @@ func (ms *FineGrainedMapStore) GetLength() int {
 }
 
 func (ms *FineGrainedMapStore) GetRange(low uint64, high uint64) map[string]string {
-	return nil
+	m := make(map[string]string)
+	for i := 0; i < ms.segmentNum; i++ {
+		ms.segments[i].segMutex.RLock()
+		for k, v := range ms.segments[i].segStore {
+			hashValue := hashKey(k)
+			if low > high {
+				if hashValue < high || hashValue >= low {
+					m[k] = v
+				}
+			} else {
+				if hashValue >= low && hashValue < high {
+					m[k] = v
+				}
+			}
+		}
+		ms.segments[i].segMutex.RUnlock()
+	}
+
+	defer func() {
+		for key := range m {
+			segId := hash2Segment(key, uint64(ms.segmentNum))
+			// only lock the segment
+			ms.segments[segId].segMutex.Lock()
+			delete(ms.segments[segId].segStore, key)
+			ms.segments[segId].segMutex.Unlock()
+		}
+	} ()
+
+	return m
 }
 
 func (ms *FineGrainedMapStore) MigrateRecv(m map[string]string) {

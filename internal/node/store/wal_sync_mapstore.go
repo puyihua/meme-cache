@@ -13,6 +13,33 @@ type WalSyncMapStore struct {
 	logFile *os.File
 }
 
+func (ms *WalSyncMapStore) GetRange(low uint64, high uint64) map[string]string {
+	ms.mutex.Lock()
+	defer ms.mutex.Unlock()
+	m := make(map[string]string)
+	for k, v := range ms.store {
+		hashValue := hashKey(k)
+		if low > high {
+			if hashValue < high || hashValue >= low {
+				m[k] = v
+			}
+		} else {
+			if hashValue >= low && hashValue < high {
+				m[k] = v
+			}
+		}
+	}
+	return m
+}
+
+func (ms *WalSyncMapStore) MigrateRecv(m map[string]string) {
+	ms.mutex.Lock()
+	defer ms.mutex.Unlock()
+	for k, v := range m {
+		ms.store[k] = v
+	}
+}
+
 func NewWalSyncMapStore(logFile *os.File) *WalSyncMapStore {
 	return &WalSyncMapStore{
 		store:   make(map[string]string),

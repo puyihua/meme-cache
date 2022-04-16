@@ -1,6 +1,8 @@
 package node
 
 import (
+	"bytes"
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"
@@ -90,6 +92,70 @@ func (svr *Server) putHandler(theUrl *url.URL) string {
 	return "Done"
 }
 
+func (svr *Server) migrateSendHandler(theUrl *url.URL) string {
+	queryMap, err := url.ParseQuery(theUrl.RawQuery)
+	if err != nil {
+		return "Wrong Request Format"
+	}
+
+	lows, ok := queryMap["low"]
+	if !ok {
+		return "Wrong Request Format"
+	}
+
+	highs, ok := queryMap["high"]
+	if !ok {
+		return "Wrong Request Format"
+	}
+
+	targets, ok := queryMap["target"]
+	if !ok {
+		return "Wrong Request Format"
+	}
+
+	lowStr, highStr, target := lows[0], highs[0], targets[0]
+
+	low, _ := strconv.ParseUint(lowStr, 10, 64)
+	high, _ := strconv.ParseUint(highStr, 10, 64)
+
+	m := svr.store.GetRange(low, high)
+
+	if len(m) == 0 {
+		return "Done"
+	}
+
+	payload, err := json.Marshal(m)
+
+	if err != nil {
+		return err.Error()
+	}
+
+	resp, err := http.Post("http://" + target + "/migrateRecv", "application/json",
+		bytes.NewBuffer(payload))
+
+	if err != nil {
+		return err.Error()
+	}
+
+	if resp.StatusCode != 200 {
+		return "migrate fails"
+	}
+
+	return "Done"
+}
+
+func (svr *Server) migrateRecvHandler(r *http.Request) string {
+	var m map[string]string
+	err := json.NewDecoder(r.Body).Decode(&m)
+	if err != nil {
+		return err.Error()
+	}
+
+	svr.store.MigrateRecv(m)
+
+	return "Done"
+}
+
 func (svr *Server) getLenHandler() string {
 	return strconv.Itoa(svr.store.GetLength())
 }
@@ -106,6 +172,14 @@ func (svr *Server) Serve() {
 
 	mux.HandleFunc("/getlen", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, svr.getLenHandler())
+	})
+
+	mux.HandleFunc("/migrate", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, svr.migrateSendHandler(r.URL))
+	})
+
+	mux.HandleFunc("/migrateRecv", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, svr.migrateRecvHandler(r))
 	})
 
 	if svr.logFile != nil {

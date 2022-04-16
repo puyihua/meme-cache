@@ -40,7 +40,6 @@ func (rms *RWMapStore) GetLength() int {
 
 func (rms *RWMapStore) GetRange(low uint64, high uint64) map[string]string {
 	rms.mutex.RLock()
-	defer rms.mutex.RUnlock()
 	m := make(map[string]string)
 	for k, v := range rms.store {
 		hashValue := hashKey(k)
@@ -54,6 +53,15 @@ func (rms *RWMapStore) GetRange(low uint64, high uint64) map[string]string {
 			}
 		}
 	}
+	rms.mutex.RUnlock()
+
+	defer func() {
+		rms.mutex.Lock()
+		for key := range m {
+			delete(rms.store, key)
+		}
+		rms.mutex.Unlock()
+	} ()
 	return m
 }
 

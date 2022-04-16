@@ -44,6 +44,7 @@ func (ms *MapStore) GetRange(low uint64, high uint64) map[string]string {
 	m := make(map[string]string)
 	for k, v := range ms.store {
 		hashValue := hashKey(k)
+		delete(m, k)
 		if low > high {
 			if hashValue < high || hashValue >= low {
 				m[k] = v

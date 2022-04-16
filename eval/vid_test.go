@@ -2,6 +2,7 @@ package eval
 
 import (
 	"fmt"
+	"github.com/puyihua/meme-cache/internal/node/store"
 	"testing"
 	"time"
 )
@@ -23,7 +24,7 @@ func startClusterAndPutKeys(numNode, numVidsPerNode, numKeys int) error {
 		nodePorts[i] = masterPort + i + 1
 	}
 
-	cc := NewCacheCluster(masterPort, nodePorts[:], numVidsPerNode)
+	cc := NewCacheCluster(masterPort, nodePorts[:], numVidsPerNode, store.TypeFineGrained)
 
 	time.Sleep(1 * time.Second)
 

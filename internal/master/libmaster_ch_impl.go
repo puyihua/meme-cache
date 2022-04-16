@@ -101,7 +101,9 @@ func (l *LibMasterCH) AddMember(hostport string, vids []uint64) error {
 		high := l.hashChain[(pos + 1) % len(l.hashChain)]
 		low := l.hashChain[(pos - 1 + len(l.hashChain)) % len(l.hashChain)]
 		source := l.hash2Server[high]
-		l.Migrate(low, high, source, hostport)
+		if hostport != source {
+			l.Migrate(low, vid, hostport, source)
+		}
 	}
 
 	return nil
@@ -155,7 +157,7 @@ func binarySearch(chain []uint64, target uint64) int{
 }
 
 func (l *LibMasterCH) Migrate(low uint64, high uint64, target string, source string) error {
-	resp, err := http.Get("http://" + source + "/migrate?target=" + target + "low=" +
+	resp, err := http.Get("http://" + source + "/migrate?target=" + target + "&low=" +
 		strconv.FormatUint(low, 10) + "&high=" + strconv.FormatUint(high, 10))
 	if err != nil {
 		return err

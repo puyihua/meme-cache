@@ -14,6 +14,33 @@ type WalAsyncMapStore struct {
 	logChan chan string
 }
 
+func (ms *WalAsyncMapStore) GetRange(low uint64, high uint64) map[string]string {
+	ms.mutex.Lock()
+	defer ms.mutex.Unlock()
+	m := make(map[string]string)
+	for k, v := range ms.store {
+		hashValue := hashKey(k)
+		if low > high {
+			if hashValue < high || hashValue >= low {
+				m[k] = v
+			}
+		} else {
+			if hashValue >= low && hashValue < high {
+				m[k] = v
+			}
+		}
+	}
+	return m
+}
+
+func (ms *WalAsyncMapStore) MigrateRecv(m map[string]string) {
+	ms.mutex.Lock()
+	defer ms.mutex.Unlock()
+	for k, v := range m {
+		ms.store[k] = v
+	}
+}
+
 func NewWalAsyncMapStore(logFile *os.File) *WalAsyncMapStore {
 	store := &WalAsyncMapStore{
 		store:   make(map[string]string),
