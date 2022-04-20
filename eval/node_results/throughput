@@ -17,23 +17,14 @@ Baseline
     node_test.go:83: [Read Throughput]  concurrency: 20, request: 4000, elapsed: 7530ms, throughtput: 0.531209
 
 No Latency:
-fine-grained:
-    node_test.go:83: [Read Throughput]  concurrency: 1, request: 200, elapsed: 168ms, throughtput: 1.190476
-    node_test.go:83: [Read Throughput]  concurrency: 5, request: 1000, elapsed: 257ms, throughtput: 3.891051
-    node_test.go:83: [Read Throughput]  concurrency: 10, request: 2000, elapsed: 278ms, throughtput: 7.194244
-    node_test.go:83: [Read Throughput]  concurrency: 20, request: 4000, elapsed: 478ms, throughtput: 8.368201
-
-RWLock:
-    node_test.go:83: [Read Throughput]  concurrency: 1, request: 200, elapsed: 152ms, throughtput: 1.315789
-    node_test.go:83: [Read Throughput]  concurrency: 5, request: 1000, elapsed: 241ms, throughtput: 4.149378
-    node_test.go:83: [Read Throughput]  concurrency: 10, request: 2000, elapsed: 263ms, throughtput: 7.604563
-    node_test.go:83: [Read Throughput]  concurrency: 20, request: 4000, elapsed: 461ms, throughtput: 8.676789
-
-Baseline:
-    node_test.go:83: [Read Throughput]  concurrency: 1, request: 200, elapsed: 158ms, throughtput: 1.265823
-    node_test.go:83: [Read Throughput]  concurrency: 5, request: 1000, elapsed: 250ms, throughtput: 4.000000
-    node_test.go:83: [Read Throughput]  concurrency: 10, request: 2000, elapsed: 257ms, throughtput: 7.782101
-    node_test.go:83: [Read Throughput]  concurrency: 20, request: 4000, elapsed: 506ms, throughtput: 7.905138
+Read:
+    store_test.go:65: Throughput: 4516.711914
+    store_test.go:65: Throughput: 14662.756836
+    store_test.go:65: Throughput: 11013.215820
+Read-Write:
+    store_test.go:65: Throughput: 3844.182373
+    store_test.go:65: Throughput: 4059.540039
+    store_test.go:65: Throughput: 7579.585449
 
 
 Write and Read:
@@ -51,6 +42,6 @@ RWLock
 
 Fine-grained:
     node_test.go:113: [Throughput]  concurrency: 1, request: 400, elapsed: 331ms, throughtput: 1.208459
-    node_test.go:113: [Throughput]  concurrency: 5, request: 2000, elapsed: 424ms, throughtput: 4.716981
-    node_test.go:113: [Throughput]  concurrency: 10, request: 4000, elapsed: 526ms, throughtput: 7.604563
-    node_test.go:113: [Throughput]  concurrency: 20, request: 8000, elapsed: 940ms, throughtput: 8.510638
+    node_test.go:113: [Throughput]  concurrency: 5, request: 2000, elapsed: 424ms, throughtput: 4.925981
+    node_test.go:113: [Throughput]  concurrency: 10, request: 4000, elapsed: 526ms, throughtput: 8.204563
+    node_test.go:113: [Throughput]  concurrency: 20, request: 8000, elapsed: 940ms, throughtput: 8.924638
