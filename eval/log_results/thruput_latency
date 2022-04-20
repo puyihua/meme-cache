@@ -1,0 +1,14 @@
+=== RUN   TestNoWalThroughputAndLatency
+    /Users/yihua/Dev/18845/meme-cache/eval/node_test.go:152: [Throughput]  concurrency: 10, request: 500, elapsed: 1674ms, throughtput: 0.298686, latency: 32.632000ms
+--- PASS: TestNoWalThroughputAndLatency (3.43s)
+PASS
+
+=== RUN   TestSyncWalThroughputAndLatency
+    /Users/yihua/Dev/18845/meme-cache/eval/node_test.go:152: [Throughput]  concurrency: 10, request: 500, elapsed: 8902ms, throughtput: 0.056167, latency: 175.884000ms
+--- PASS: TestSyncWalThroughputAndLatency (11.79s)
+PASS
+
+=== RUN   TestAsyncWalThroughputAndLatency
+    /Users/yihua/Dev/18845/meme-cache/eval/node_test.go:152: [Throughput]  concurrency: 10, request: 500, elapsed: 1699ms, throughtput: 0.294291, latency: 33.068000ms
+--- PASS: TestAsyncWalThroughputAndLatency (3.50s)
+PASS

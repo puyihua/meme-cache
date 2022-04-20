@@ -7,7 +7,7 @@ import (
 )
 
 func TestNoWalThroughputAndLatency(t *testing.T) {
-	numKeys := 200
+	numKeys := 50
 	keys, err1 := readKeysFromJson(numKeys)
 	if err1 != nil {
 		t.Error(err1)
@@ -23,7 +23,7 @@ func TestNoWalThroughputAndLatency(t *testing.T) {
 }
 
 func TestSyncWalThroughputAndLatency(t *testing.T) {
-	numKeys := 200
+	numKeys := 50
 	keys, err1 := readKeysFromJson(numKeys)
 	if err1 != nil {
 		t.Error(err1)
@@ -39,7 +39,7 @@ func TestSyncWalThroughputAndLatency(t *testing.T) {
 }
 
 func TestAsyncWalThroughputAndLatency(t *testing.T) {
-	numKeys := 200
+	numKeys := 50
 	keys, err1 := readKeysFromJson(numKeys)
 	if err1 != nil {
 		t.Error(err1)

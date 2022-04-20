@@ -54,6 +54,7 @@ func NewWalAsyncMapStore(logFile *os.File) *WalAsyncMapStore {
 func (ms *WalAsyncMapStore) asyncLogWriter() {
 	for record := range ms.logChan {
 		log.Println(record)
+		ms.logFile.Sync()
 	}
 }
 

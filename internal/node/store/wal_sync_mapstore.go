@@ -61,6 +61,7 @@ func (ms *WalSyncMapStore) Put(key string, value string) {
 	ms.mutex.Lock()
 	defer ms.mutex.Unlock()
 	log.Printf("put,%s,%s\n", key, value)
+	ms.logFile.Sync()
 	ms.store[key] = value
 }
 
