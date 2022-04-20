@@ -2,8 +2,6 @@ package eval
 
 import (
 	"encoding/json"
-	"github.com/puyihua/meme-cache/internal/node"
-	"github.com/puyihua/meme-cache/internal/node/store"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -13,6 +11,9 @@ import (
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/puyihua/meme-cache/internal/node"
+	"github.com/puyihua/meme-cache/internal/node/store"
 )
 
 const defaultStoreType int = store.TypeBaseline
@@ -88,7 +89,7 @@ func evalNodeThroughput(t *testing.T, numKeys int, numClients int, keys []string
 	shuffledKeysGroup := make([][]string, numClients)
 	shuffledKeysGroup[0] = keys
 	for i := 1; i < numClients; i++ {
-		shuffledKeysGroup[i] = generateShuffle(shuffledKeysGroup[i - 1])
+		shuffledKeysGroup[i] = generateShuffle(shuffledKeysGroup[i-1])
 	}
 
 	// start benchmark
@@ -99,7 +100,7 @@ func evalNodeThroughput(t *testing.T, numKeys int, numClients int, keys []string
 
 	countSum := 0
 	for i := 0; i < numClients; i++ {
-		countSum += <- closeChan
+		countSum += <-closeChan
 	}
 
 	expectedCount := numKeys * numClients * len(ops)
@@ -108,13 +109,49 @@ func evalNodeThroughput(t *testing.T, numKeys int, numClients int, keys []string
 		t.Errorf("Send %d requests, recieve %d response\n", expectedCount, countSum)
 	}
 
-	elapsed :=  int(time.Since(start) / time.Millisecond)
+	elapsed := int(time.Since(start) / time.Millisecond)
 
 	t.Logf("[Throughput]  concurrency: %d, request: %d, elapsed: %dms, throughtput: %f \n",
-		numClients, countSum, elapsed, float32(countSum) / float32(elapsed))
+		numClients, countSum, elapsed, float32(countSum)/float32(elapsed))
 }
 
+func evalNodeLatency(t *testing.T, numKeys int, numClients int, keys []string, ops []string) {
 
+	closeChan := make(chan int)
+	lateChan := make(chan int64)
+	var allLatency int64 = 0
+
+	// generate random key group for different clients
+	shuffledKeysGroup := make([][]string, numClients)
+	shuffledKeysGroup[0] = keys
+	for i := 1; i < numClients; i++ {
+		shuffledKeysGroup[i] = generateShuffle(shuffledKeysGroup[i-1])
+	}
+
+	// start benchmark
+	start := time.Now()
+	for i := 0; i < numClients; i++ {
+		go loadGenClientForLatency(urlStr, ops, shuffledKeysGroup[i], lateChan, closeChan)
+	}
+
+	countSum := 0
+	for i := 0; i < numClients; i++ {
+		countSum += <-closeChan
+		allLatency += <-lateChan
+	}
+
+	expectedCount := numKeys * numClients * len(ops)
+
+	if countSum != expectedCount {
+		t.Errorf("Send %d requests, recieve %d response\n", expectedCount, countSum)
+	}
+
+	elapsed := int(time.Since(start) / time.Millisecond)
+	avgLatency := float64(allLatency) / float64(expectedCount)
+
+	t.Logf("[Throughput]  concurrency: %d, request: %d, elapsed: %dms, throughtput: %f, latency: %fms \n",
+		numClients, countSum, elapsed, float32(countSum)/float32(elapsed), avgLatency)
+}
 
 func generateShuffle(keys []string) []string {
 	newKeys := make([]string, len(keys))
@@ -163,10 +200,10 @@ func readKeysFromJson(numKeys int) ([]string, error) {
 }
 
 func startNodeAndPutKeys(keys []string, storeType int) error {
-	go func () {
+	go func() {
 		cacheNode := node.NewServerWithType(8082, storeType)
 		cacheNode.Serve()
-	} ()
+	}()
 
 	// wait for the server to be launched
 	time.Sleep(1500 * time.Millisecond)
